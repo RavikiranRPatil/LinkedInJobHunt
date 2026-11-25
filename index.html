@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f4">
+  <meta name="description" content="A live-updating feed of Data Engineer and related job openings in the Netherlands.">
+  <title>Data roles, found — Netherlands job feed</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17241f;
+      --muted: #6b7771;
+      --line: #e5e9e5;
+      --paper: #fff;
+      --canvas: #f6f7f4;
+      --green: #176b4a;
+      --green-dark: #10563a;
+      --green-pale: #eaf4ed;
+      --amber: #a56a24;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--canvas);
+      color: var(--ink);
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .shell { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 15px; font-weight: 720; letter-spacing: -.03em; }
+    .brand-mark {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 9px;
+      background: var(--green);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .topbar-note { color: var(--muted); font-size: 12px; }
+
+    main { padding: 58px 0 68px; }
+
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 33px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 15px;
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #35a66d;
+      box-shadow: 0 0 0 4px #35a66d20;
+    }
+
+    h1 { margin: 0; font-size: clamp(36px, 5vw, 56px); line-height: 1.04; letter-spacing: -.065em; font-weight: 690; }
+    .hero-copy { max-width: 520px; margin: 13px 0 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+
+    .refresh-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 0 15px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 650;
+      transition: border-color .15s, background .15s;
+    }
+    .refresh-button:hover { border-color: #b7c8bc; background: #fbfdfb; }
+    .refresh-button:disabled { cursor: wait; opacity: .7; }
+    .refresh-icon { font-size: 17px; line-height: 1; }
+
+    .feed-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 0 0 22px;
+      padding: 12px 15px;
+      border: 1px solid #e8ebdf;
+      border-radius: 10px;
+      background: #f1f3eb;
+      color: #626c59;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .feed-note strong { color: #48533f; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 13px;
+    }
+
+    .search-wrap { position: relative; flex: 1; max-width: 440px; }
+    .search-icon { position: absolute; top: 50%; left: 14px; color: #89938e; font-size: 16px; transform: translateY(-52%); pointer-events: none; }
+    .search {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px 0 41px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      outline: none;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 13px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .search::placeholder { color: #99a19d; }
+    .search:focus { border-color: #8db59d; box-shadow: 0 0 0 3px #176b4a12; }
+    .results-count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+
+    .feed-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 0 0 13px;
+      color: #87918b;
+      font-size: 11px;
+    }
+    .status-left { display: inline-flex; align-items: center; gap: 7px; }
+    .status-indicator { width: 6px; height: 6px; border-radius: 50%; background: #49a571; }
+    .feed-status.error { color: #9c4a3e; }
+    .feed-status.error .status-indicator { background: #c65c4d; }
+
+    .job-list { display: grid; gap: 10px; }
+    .job-card {
+      display: grid;
+      grid-template-columns: 46px minmax(0, 1fr) auto;
+      align-items: start;
+      gap: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      transition: border-color .15s, transform .15s, box-shadow .15s;
+    }
+    .job-card:hover { border-color: #cdd9d0; transform: translateY(-1px); box-shadow: 0 5px 16px #233b2a08; }
+    .company-mark {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      border: 1px solid #e5ebe6;
+      border-radius: 10px;
+      background: #f7f9f6;
+      color: var(--green);
+      font-size: 15px;
+      font-weight: 750;
+      letter-spacing: -.04em;
+    }
+    .job-main { min-width: 0; }
+    .job-title { margin: 1px 0 5px; font-size: 16px; line-height: 1.35; font-weight: 680; letter-spacing: -.025em; }
+    .job-title a { color: inherit; text-decoration: none; }
+    .job-title a:hover { color: var(--green); }
+    .company-name { margin: 0; color: #68746d; font-size: 13px; font-weight: 550; }
+    .job-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-top: 15px; color: #77827c; font-size: 11px; }
+    .meta-item { display: inline-flex; align-items: center; gap: 5px; }
+    .job-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .tag { padding: 5px 8px; border-radius: 6px; background: #f2f5f2; color: #68766d; font-size: 10px; font-weight: 600; }
+    .tag.primary { background: var(--green-pale); color: var(--green); }
+    .job-age { padding-top: 4px; color: #88928d; font-size: 11px; white-space: nowrap; }
+    .apply-link { color: var(--green); font-weight: 700; }
+
+    .empty-state, .loading-state, .error-state {
+      padding: 58px 20px;
+      border: 1px dashed #dce3dd;
+      border-radius: 12px;
+      background: #fbfcfa;
+      text-align: center;
+    }
+    .state-icon { margin-bottom: 11px; color: #91a097; font-size: 25px; }
+    .state-title { margin: 0 0 6px; font-size: 15px; font-weight: 680; }
+    .state-copy { max-width: 410px; margin: 0 auto; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .error-state .state-title { color: #923f34; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      color: #89938d;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+    footer a { color: #64736a; text-decoration: underline; text-underline-offset: 2px; }
+
+    @media (max-width: 680px) {
+      .shell { padding: 0 19px; }
+      .topbar { height: 62px; }
+      .topbar-note { max-width: 130px; text-align: right; line-height: 1.4; }
+      main { padding: 39px 0 45px; }
+      .hero { display: block; margin-bottom: 25px; }
+      .hero-copy { max-width: 460px; font-size: 14px; }
+      .refresh-button { margin-top: 19px; }
+      .toolbar { align-items: flex-start; flex-direction: column; gap: 10px; }
+      .search-wrap { max-width: none; width: 100%; }
+      .results-count { padding-left: 1px; }
+      .job-card { grid-template-columns: 38px minmax(0, 1fr); gap: 13px; padding: 15px; }
+      .company-mark { width: 38px; height: 38px; font-size: 13px; }
+      .job-title { font-size: 14px; }
+      .job-age { grid-column: 2; grid-row: 2; padding-top: 0; }
+      .job-meta { gap: 8px 12px; margin-top: 12px; }
+      footer { flex-direction: column; gap: 8px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">d</span><span>data roles, found</span></div>
+    <div class="topbar-note">A focused feed for your next move</div>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> Netherlands · Data &amp; Engineering</p>
+        <h1 id="page-title">Build what<br>comes next.</h1>
+        <p class="hero-copy">The latest Data Engineer and related openings across the Netherlands, gathered in one place.</p>
+      </div>
+      <button class="refresh-button" id="refresh-button" type="button">
+        <span class="refresh-icon" aria-hidden="true">↻</span><span>Refresh jobs</span>
+      </button>
+    </section>
+
+    <aside class="feed-note">
+      <span aria-hidden="true">ⓘ</span>
+      <span><strong>Feed freshness:</strong> this page checks for updates every minute. Listings are provided by Arbeitnow, whose public job feed refreshes about once an hour.</span>
+    </aside>
+
+    <section aria-label="Job listings">
+      <div class="toolbar">
+        <label class="search-wrap">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input class="search" id="search-input" type="search" placeholder="Search role, company, or keyword" autocomplete="off" aria-label="Search jobs">
+        </label>
+        <div class="results-count" id="results-count" aria-live="polite">Loading openings…</div>
+      </div>
+      <div class="feed-status" id="feed-status" role="status" aria-live="polite">
+        <span class="status-left"><span class="status-indicator" aria-hidden="true"></span><span id="status-message">Connecting to job feed…</span></span>
+        <span id="updated-at"></span>
+      </div>
+      <div class="job-list" id="job-list" aria-live="polite">
+        <div class="loading-state"><div class="state-icon" aria-hidden="true">◌</div><p class="state-title">Finding the latest roles</p><p class="state-copy">Connecting to the job feed…</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="shell">
+    <span>Job listings belong to their respective employers. Always verify details on the original posting.</span>
+    <span>Listings via <a href="https://www.arbeitnow.com/" target="_blank" rel="noopener noreferrer">Arbeitnow</a></span>
+  </footer>
+
+  <script>
+    (() => {
+      const FEED_URL = "https://www.arbeitnow.com/api/job-board-api";
+      const REFRESH_INTERVAL = 60 * 1000;
+      const DUTCH_LOCATIONS = [
+        "netherlands", "nederland", "amsterdam", "rotterdam", "utrecht", "eindhoven",
+        "the hague", "den haag", "groningen", "nijmegen", "maastricht", "leiden",
+        "delft", "tilburg", "breda", "arnhem", "haarlem", "enschede", "almere",
+        "amersfoort", "zwolle", "gouda", "s-hertogenbosch", "'s-hertogenbosch"
+      ];
+      const DATA_ROLE = /\b(data\s*(?:&|and)?\s*(?:platform\s*)?engineer(?:ing)?|engineer(?:ing)?\s*,?\s*data|analytics engineer)\b/i;
+      const jobList = document.getElementById("job-list");
+      const searchInput = document.getElementById("search-input");
+      const resultsCount = document.getElementById("results-count");
+      const feedStatus = document.getElementById("feed-status");
+      const statusMessage = document.getElementById("status-message");
+      const updatedAt = document.getElementById("updated-at");
+      const refreshButton = document.getElementById("refresh-button");
+      let jobs = [];
+      let isRefreshing = false;
+      let lastSuccessAt = null;
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        })[char]);
+      }
+
+      function getDate(value) {
+        if (typeof value === "number") return new Date(value * 1000);
+        const numeric = Number(value);
+        if (value && Number.isFinite(numeric) && String(value).length >= 10) return new Date(numeric * 1000);
+        return new Date(value);
+      }
+
+      function formatAge(value) {
+        const date = getDate(value);
+        if (Number.isNaN(date.getTime())) return "Recently posted";
+        const hours = Math.max(0, Math.floor((Date.now() - date.getTime()) / 3600000));
+        if (hours < 1) return "Posted just now";
+        if (hours < 24) return `Posted ${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return days === 1 ? "Posted 1 day ago" : `Posted ${days} days ago`;
+      }
+
+      function isDutchLocation(location) {
+        const normalized = String(location || "").toLowerCase();
+        return DUTCH_LOCATIONS.some((place) => normalized.includes(place));
+      }
+
+      function normalizeJob(job) {
+        const title = String(job.title || "");
+        const location = String(job.location || "");
+        const company = String(job.company_name || "Company not listed");
+        const tags = Array.isArray(job.tags) ? job.tags : [];
+        const searchable = `${title} ${company} ${location} ${tags.join(" ")}`;
+        const url = typeof job.url === "string" ? job.url : "";
+        if (!/^https:\/\//i.test(url) || !DATA_ROLE.test(title) || !isDutchLocation(location)) return null;
+        return { ...job, title, location, company, tags, searchable };
+      }
+
+      function formatUpdated(date) {
+        return date ? `Last checked ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "";
+      }
+
+      function renderState(type, title, copy) {
+        const icon = type === "error" ? "!" : "⌕";
+        jobList.innerHTML = `<div class="${type}-state"><div class="state-icon" aria-hidden="true">${icon}</div><p class="state-title">${escapeHtml(title)}</p><p class="state-copy">${escapeHtml(copy)}</p></div>`;
+      }
+
+      function renderJobs() {
+        const query = searchInput.value.trim().toLowerCase();
+        const matches = jobs.filter((job) => !query || job.searchable.toLowerCase().includes(query));
+        resultsCount.textContent = `${matches.length} ${matches.length === 1 ? "opening" : "openings"}`;
+
+        if (!matches.length) {
+          renderState("empty", query ? "No matching openings" : "No Dutch data-engineering roles right now", query ? "Try a different title, company, or keyword." : "Check back soon. The list refreshes automatically when the source feed updates.");
+          return;
+        }
+
+        jobList.innerHTML = matches.map((job) => {
+          const initials = job.company.trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase();
+          const tags = job.tags.slice(0, 3).map((tag, index) => `<span class="tag${index === 0 ? " primary" : ""}">${escapeHtml(tag)}</span>`).join("");
+          const remote = job.remote ? '<span class="meta-item">↗ Remote</span>' : "";
+          return `<article class="job-card">
+            <div class="company-mark" aria-hidden="true">${escapeHtml(initials || "J")}</div>
+            <div class="job-main">
+              <h2 class="job-title"><a href="${escapeHtml(job.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(job.title)}</a></h2>
+              <p class="company-name">${escapeHtml(job.company)}</p>
+              <div class="job-meta">
+                <span class="meta-item">⌖ ${escapeHtml(job.location)}</span>
+                ${remote}
+                <a class="meta-item apply-link" href="${escapeHtml(job.url)}" target="_blank" rel="noopener noreferrer">View opening ↗</a>
+              </div>
+              ${tags ? `<div class="job-tags">${tags}</div>` : ""}
+            </div>
+            <div class="job-age">${escapeHtml(formatAge(job.created_at))}</div>
+          </article>`;
+        }).join("");
+      }
+
+      async function refreshJobs() {
+        if (isRefreshing) return;
+        isRefreshing = true;
+        refreshButton.disabled = true;
+        statusMessage.textContent = jobs.length ? "Checking for new openings…" : "Connecting to job feed…";
+        feedStatus.classList.remove("error");
+
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 15000);
+        try {
+          const response = await fetch(FEED_URL, { headers: { Accept: "application/json" }, cache: "no-store", signal: controller.signal });
+          if (!response.ok) throw new Error(`Job feed returned HTTP ${response.status}`);
+          const payload = await response.json();
+          if (!payload || !Array.isArray(payload.data)) throw new Error("Job feed returned an unexpected response");
+          jobs = payload.data.map(normalizeJob).filter(Boolean).sort((a, b) => getDate(b.created_at) - getDate(a.created_at));
+          lastSuccessAt = new Date();
+          statusMessage.textContent = "Feed connected · checking automatically every minute";
+          updatedAt.textContent = formatUpdated(lastSuccessAt);
+          renderJobs();
+        } catch (error) {
+          console.error("Could not load job listings:", error);
+          feedStatus.classList.add("error");
+          if (jobs.length) {
+            statusMessage.textContent = "Could not refresh · showing the last loaded listings";
+            updatedAt.textContent = formatUpdated(lastSuccessAt);
+            renderJobs();
+          } else {
+            statusMessage.textContent = "Unable to connect to the job feed";
+            updatedAt.textContent = "";
+            resultsCount.textContent = "Listings unavailable";
+            renderState("error", "Couldn’t load the job feed", "Check your internet connection and try refreshing. The source may also be temporarily unavailable.");
+          }
+        } finally {
+          window.clearTimeout(timeoutId);
+          isRefreshing = false;
+          refreshButton.disabled = false;
+        }
+      }
+
+      searchInput.addEventListener("input", renderJobs);
+      refreshButton.addEventListener("click", refreshJobs);
+      refreshJobs();
+      window.setInterval(refreshJobs, REFRESH_INTERVAL);
+    })();
+  </script>
+</body>
+</html>
